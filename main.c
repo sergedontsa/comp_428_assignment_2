@@ -115,10 +115,8 @@ int main(int argc, char* argv[])
     MPI_Status status;
 
     if (argc != 3) {
-        printf("Desired number of arguments are not their "
-            "in argv....\n");
-        printf("2 files required first one input and "
-            "second one output....\n");
+        printf("Desired number of arguments are not their in argv....\n");
+        printf("2 files required first one input and second one output....\n");
         exit(-1);
     }
 
@@ -126,9 +124,8 @@ int main(int argc, char* argv[])
     int rc = MPI_Init(&argc, &argv);
 
     if (rc != MPI_SUCCESS) {
-        printf("Error in creating MPI "
-            "program.\n "
-            "Terminating......\n");
+        printf("Error in creating MPI program.\n "
+               "Terminating......\n");
         MPI_Abort(MPI_COMM_WORLD, rc);
     }
 
@@ -269,12 +266,10 @@ for(int step = 1; step < number_of_process; step = 2 * step)
 // Stop the timer
 time_taken += MPI_Wtime();
 
-// Opening the other file as taken form input
-// and writing it to the file and giving it
-// as the output
+//Write the result in a file
 if(rank_of_process == 0)
 {
-        // Opening the file
+
         file = fopen(argv[2], "w");
 
         if (file == NULL) {
@@ -282,39 +277,27 @@ if(rank_of_process == 0)
             exit(-1);
         }
 
-        // Printing total number of elements
-        // in the file
         fprintf(
             file,
             "Total number of Elements in the array : %d\n",
             own_chunk_size);
 
-        // Printing the value of array in the file
         for (int i = 0; i < own_chunk_size; i++) {
             fprintf(file, "%d ", chunk[i]);
         }
 
-        // Closing the file
         fclose(file);
 
 
-        printf("\n\n\n\nResult printed in output.txt file "
-            "and shown below: \n");
+        printf("Result printed in output.txt file and shown below: \n");
 
-        // For Printing in the terminal
-        printf("Total number of Elements given as input : "
-            "%d\n",
-            number_of_elements);
+        printf("Total number of Elements given as input : %d\n", number_of_elements);
         printf("Sorted array is: \n");
 
         for (int i = 0; i < number_of_elements; i++) {
             printf("%d ", chunk[i]);
         }
-
-        printf(
-            "\n\nQuicksort %d ints on %d procs: %f secs\n",
-            number_of_elements, number_of_process,
-            time_taken);
+        printf("\n\nQuicksort %d ints on %d procs: %f secs\n", number_of_elements, number_of_process, time_taken);
 }
 
 MPI_Finalize();
