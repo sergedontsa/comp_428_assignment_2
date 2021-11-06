@@ -2,4 +2,4 @@ Parallel Quicksort on a hypercube topology: There are different formulations for
 Compare its performance with the best sequential sorting algorithm (e.g., quicksort) to sort a large input sequence (you can generate the numbers randomly). As in assignment 1, you should plot speed-up versus number of processes graphs for different input data sizes and explain your findings
 To compile and run the code:
 - STEP 1:```mpicc main.c -o <name of the file>```
-- STEP 2:```mpirun <name of the file> input.txt <output file name>```
+- STEP 2:```mpirun -np <number of slot> <name of the file> input.txt <output file name>```
