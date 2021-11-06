@@ -12,7 +12,12 @@
 #include <unistd.h>
 
 
-// Function to swap two numbers
+/**
+ * This function two number
+ * @param arr
+ * @param i
+ * @param j
+ */
 void swap(int* arr, int i, int j)
 {
     int t = arr[i];
@@ -20,46 +25,46 @@ void swap(int* arr, int i, int j)
     arr[j] = t;
 }
 
-// Function that performs the Quick Sort
-// for an array arr[] starting from the
-// index start and ending at index end
+/**
+ * This function performs the Quick Sort algorithm on an array
+ * @param arr
+ * @param start
+ * @param end
+ */
 void quicksort(int* arr, int start, int end)
 {
     int pivot, index;
 
-    // Base Case
     if (end <= 1)
         return;
 
-    // Pick pivot and swap with first
-    // element Pivot is middle element
     pivot = arr[start + end / 2];
     swap(arr, start, start + end / 2);
 
-    // Partitioning Steps
     index = start;
 
-    // Iterate over the range [start, end]
     for (int i = start + 1; i < start + end; i++) {
 
-        // Swap if the element is less
-        // than the pivot element
         if (arr[i] < pivot) {
             index++;
             swap(arr, i, index);
         }
     }
 
-    // Swap the pivot into place
     swap(arr, start, index);
 
-    // Recursive Call for sorting
-    // of quick sort function
     quicksort(arr, start, index - start);
     quicksort(arr, index + 1, start + end - index - 1);
 }
 
-// Function that merges the two arrays
+/**
+ * This function perform the merging of two array with size n1 and n2 respectively
+ * @param arr1
+ * @param n1
+ * @param arr2
+ * @param n2
+ * @return
+ */
 int* merge(int* arr1, int n1, int* arr2, int n2)
 {
     int* result = (int*)malloc((n1 + n2) * sizeof(int));
