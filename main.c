@@ -4,12 +4,15 @@
 //
 //  Created by Serge Dontsa on 2021-11-06.
 //
+/**
+ * main.c
+ * comp_428_assign_2
+ * Create by Serge Dontsa on 2021-11-06
+ */
 
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
-#include <unistd.h>
 
 
 /**
@@ -82,14 +85,11 @@ int* merge(int* arr1, int n1, int* arr2, int n2)
             i++;
         }
 
-        // Indices in bounds as i < n1
-        // && j < n2
         else if (arr1[i] < arr2[j]) {
             result[k] = arr1[i];
             i++;
         }
 
-        // v2[j] <= v1[i]
         else {
             result[k] = arr2[j];
             j++;
@@ -98,22 +98,25 @@ int* merge(int* arr1, int n1, int* arr2, int n2)
     return result;
 }
 
-// Driver Code
+/**
+ * Main method of the app
+ * @param argc
+ * @param argv
+ * @return
+ */
 int main(int argc, char* argv[])
 {
     int number_of_elements;
     int* data = NULL;
     int chunk_size, own_chunk_size;
     int* chunk;
-    FILE* file = fopen("input.txt", "r+");
-    double time_taken;
+    FILE* file;
+    double time_taken = 0;
     MPI_Status status;
 
     if (argc != 3) {
-        printf("Desired number of arguments are not their "
-            "in argv....\n");
-        printf("2 files required first one input and "
-            "second one output....\n");
+        printf("Desired number of arguments are not their in argv....\n");
+        printf("2 files required first one input and second one output....\n");
         exit(-1);
     }
 
@@ -121,9 +124,8 @@ int main(int argc, char* argv[])
     int rc = MPI_Init(&argc, &argv);
 
     if (rc != MPI_SUCCESS) {
-        printf("Error in creating MPI "
-            "program.\n "
-            "Terminating......\n");
+        printf("Error in creating MPI program.\n "
+               "Terminating......\n");
         MPI_Abort(MPI_COMM_WORLD, rc);
     }
 
@@ -131,24 +133,20 @@ int main(int argc, char* argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &rank_of_process);
 
     if (rank_of_process == 0) {
-        // Opening the file
+
         file = fopen(argv[1], "r+");
 
-        // Printing Error message if any
+
         if (file == NULL) {
-            printf("Error in opening file\n");
+            printf("Error while opening the file\n");
             exit(-1);
         }
 
-        // Reading number of Elements in file ...
-        // First Value in file is number of Elements
-        printf(
-            "Reading number of Elements From file ....\n");
+        printf("Read number from input file ....\n");
         fscanf(file, "%d", &number_of_elements);
-        printf("Number of Elements in the file is %d \n",
-            number_of_elements);
+        printf("Number of Element: %d \n", number_of_elements);
 
-        // Computing chunk size
+
     chunk_size = (number_of_elements % number_of_process == 0) ?
                 (number_of_elements / number_of_process) :
         (number_of_elements / (number_of_process - 1));
@@ -157,15 +155,14 @@ int main(int argc, char* argv[])
                         chunk_size *
                         sizeof(int));
     
-    // Reading the rest elements in which
-    // operation is being performed
-    printf("Reading the array from the file.......\n");
+
+    printf("Reading the array from the file: \n");
     for(int i = 0; i < number_of_elements; i++)
     {
             fscanf(file, "%d", &data[i]);
     }
 
-    // Padding data with zero
+
     for(int i = number_of_elements;
             i < number_of_process *
                 chunk_size; i++)
@@ -173,7 +170,7 @@ int main(int argc, char* argv[])
             data[i] = 0;
     }
 
-    // Printing the array read from file
+
     printf("Elements in the array is : \n");
     for(int i = 0; i < number_of_elements; i++)
     {
@@ -182,48 +179,35 @@ int main(int argc, char* argv[])
 
     printf("\n");
 
+    //Close the file
     fclose(file);
     file = NULL;
     }
 
-    // Blocks all process until reach this point
+    // block the rest of the process until here
     MPI_Barrier(MPI_COMM_WORLD);
 
     // Starts Timer
     time_taken -= MPI_Wtime();
 
-    // BroadCast the Size to all the
-    // process from root process
-    MPI_Bcast(&number_of_elements, 1, MPI_INT, 0,
-            MPI_COMM_WORLD);
+    // BroadCast the Size to all the process from root process
+    MPI_Bcast(&number_of_elements, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     // Computing chunk size
-chunk_size= (number_of_elements % number_of_process == 0) ?
-            (number_of_elements / number_of_process) :
-            (number_of_elements / (number_of_process - 1));
+chunk_size= (number_of_elements % number_of_process == 0)  ? (number_of_elements / number_of_process) : (number_of_elements / (number_of_process - 1));
 
-// Calculating total size of chunk
-// according to bits
-chunk = (int *)malloc(chunk_size *
-                        sizeof(int));
+// Calculating total size of chunk according to bits
+chunk = (int *)malloc(chunk_size * sizeof(int));
 
 // Scatter the chuck size data to all process
-MPI_Scatter(data, chunk_size, MPI_INT, chunk,
-            chunk_size, MPI_INT, 0, MPI_COMM_WORLD);
+MPI_Scatter(data, chunk_size, MPI_INT, chunk, chunk_size, MPI_INT, 0, MPI_COMM_WORLD);
 free(data);
 data = NULL;
 
-// Compute size of own chunk and
-            // then sort them
-// using quick sort
+// Compute size of own chunk and then sort them using quick sort
+own_chunk_size = (number_of_elements >= chunk_size*(rank_of_process + 1)) ? chunk_size : (number_of_elements - chunk_size*rank_of_process);
 
-own_chunk_size = (number_of_elements >=
-                    chunk_size*(rank_of_process + 1)) ?
-                    chunk_size : (number_of_elements -
-                                chunk_size*rank_of_process);
-
-// Sorting array with quick sort for every
-// chunk as called by process
+// Sorting array with quick sort
 quicksort(chunk, 0, own_chunk_size);
 
 for(int step = 1; step < number_of_process; step = 2 * step)
@@ -266,12 +250,10 @@ for(int step = 1; step < number_of_process; step = 2 * step)
 // Stop the timer
 time_taken += MPI_Wtime();
 
-// Opening the other file as taken form input
-// and writing it to the file and giving it
-// as the output
+//Write the result in a file
 if(rank_of_process == 0)
 {
-        // Opening the file
+
         file = fopen(argv[2], "w");
 
         if (file == NULL) {
@@ -279,38 +261,27 @@ if(rank_of_process == 0)
             exit(-1);
         }
 
-        // Printing total number of elements
-        // in the file
         fprintf(
             file,
             "Total number of Elements in the array : %d\n",
             own_chunk_size);
 
-        // Printing the value of array in the file
         for (int i = 0; i < own_chunk_size; i++) {
             fprintf(file, "%d ", chunk[i]);
         }
 
-        // Closing the file
         fclose(file);
 
-        printf("\n\n\n\nResult printed in output.txt file "
-            "and shown below: \n");
 
-        // For Printing in the terminal
-        printf("Total number of Elements given as input : "
-            "%d\n",
-            number_of_elements);
+        printf("Result printed in output.txt file and shown below: \n");
+
+        printf("Total number of Elements given as input : %d\n", number_of_elements);
         printf("Sorted array is: \n");
 
         for (int i = 0; i < number_of_elements; i++) {
             printf("%d ", chunk[i]);
         }
-
-        printf(
-            "\n\nQuicksort %d ints on %d procs: %f secs\n",
-            number_of_elements, number_of_process,
-            time_taken);
+        printf("\n\nQuicksort %d ints on %d procs: %f secs\n", number_of_elements, number_of_process, time_taken);
 }
 
 MPI_Finalize();
