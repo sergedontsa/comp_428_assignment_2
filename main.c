@@ -138,15 +138,13 @@ int main(int argc, char* argv[])
 
 
         if (file == NULL) {
-            printf("Error in opening file\n");
+            printf("Error while opening the file\n");
             exit(-1);
         }
 
-        printf(
-            "Reading number of Elements From file ....\n");
+        printf("Read number from input file ....\n");
         fscanf(file, "%d", &number_of_elements);
-        printf("Number of Elements in the file is %d \n",
-            number_of_elements);
+        printf("Number of Element: %d \n", number_of_elements);
 
 
     chunk_size = (number_of_elements % number_of_process == 0) ?
@@ -158,7 +156,7 @@ int main(int argc, char* argv[])
                         sizeof(int));
     
 
-    printf("Reading the array from the file.......\n");
+    printf("Reading the array from the file: \n");
     for(int i = 0; i < number_of_elements; i++)
     {
             fscanf(file, "%d", &data[i]);
@@ -192,38 +190,24 @@ int main(int argc, char* argv[])
     // Starts Timer
     time_taken -= MPI_Wtime();
 
-    // BroadCast the Size to all the
-    // process from root process
-    MPI_Bcast(&number_of_elements, 1, MPI_INT, 0,
-            MPI_COMM_WORLD);
+    // BroadCast the Size to all the process from root process
+    MPI_Bcast(&number_of_elements, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     // Computing chunk size
-chunk_size= (number_of_elements % number_of_process == 0) ?
-            (number_of_elements / number_of_process) :
-            (number_of_elements / (number_of_process - 1));
+chunk_size= (number_of_elements % number_of_process == 0)  ? (number_of_elements / number_of_process) : (number_of_elements / (number_of_process - 1));
 
-// Calculating total size of chunk
-// according to bits
-chunk = (int *)malloc(chunk_size *
-                        sizeof(int));
+// Calculating total size of chunk according to bits
+chunk = (int *)malloc(chunk_size * sizeof(int));
 
 // Scatter the chuck size data to all process
-MPI_Scatter(data, chunk_size, MPI_INT, chunk,
-            chunk_size, MPI_INT, 0, MPI_COMM_WORLD);
+MPI_Scatter(data, chunk_size, MPI_INT, chunk, chunk_size, MPI_INT, 0, MPI_COMM_WORLD);
 free(data);
 data = NULL;
 
-// Compute size of own chunk and
-            // then sort them
-// using quick sort
+// Compute size of own chunk and then sort them using quick sort
+own_chunk_size = (number_of_elements >= chunk_size*(rank_of_process + 1)) ? chunk_size : (number_of_elements - chunk_size*rank_of_process);
 
-own_chunk_size = (number_of_elements >=
-                    chunk_size*(rank_of_process + 1)) ?
-                    chunk_size : (number_of_elements -
-                                chunk_size*rank_of_process);
-
-// Sorting array with quick sort for every
-// chunk as called by process
+// Sorting array with quick sort
 quicksort(chunk, 0, own_chunk_size);
 
 for(int step = 1; step < number_of_process; step = 2 * step)
